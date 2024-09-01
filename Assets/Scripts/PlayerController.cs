@@ -8,9 +8,10 @@ using UnityEngine.Serialization;
 public class PlayerController : Singleton<PlayerController>
 {
     [Header("Spaceship")]
-    [SerializeField] private Rigidbody2D m_SpaceshipRigidbody;
+    [SerializeField] private Spaceship _spaceshipPrefab;
     [SerializeField] private float m_TrustForce;
     [SerializeField] private float m_RotationDegrees = 10;
+    [SerializeField] private Vector3 _initialPosition;
     
     [Header("Bullets")]
     [SerializeField] private GameObject m_BulletPrefab;
@@ -21,9 +22,23 @@ public class PlayerController : Singleton<PlayerController>
     [SerializeField] private AudioClip m_LaserClip;
     
     
+    private Spaceship _spaceship;
+
     private void Awake()
     {
-        WarpManager.Instance.SubscribeTransform(m_SpaceshipRigidbody.transform);
+        _spaceship = Instantiate(_spaceshipPrefab);
+        WarpManager.Instance.SubscribeTransform(_spaceship.transform);
+    }
+    
+    public void InitializePlayer()
+    {
+        _spaceship.transform.position = _initialPosition;
+    }
+
+    public void OnPlayerHit()
+    {
+        // TODO: animate and limit invincibility and input
+        InitializePlayer();
     }
     
     // Start is called before the first frame update
@@ -44,6 +59,8 @@ public class PlayerController : Singleton<PlayerController>
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            // TODO: Implement cooldown
+            // TODO: Implement object pooling
             SpawnBullet();
             m_AudioSource.PlayOneShot(m_LaserClip);
         }
@@ -53,8 +70,8 @@ public class PlayerController : Singleton<PlayerController>
     {
         var bullet = Instantiate(m_BulletPrefab);
         var bulletRigidbody = bullet.GetComponent<Rigidbody2D>();
-        bulletRigidbody.transform.position = m_SpaceshipRigidbody.transform.position;
-        bulletRigidbody.AddForce(m_SpaceshipRigidbody.transform.up * m_ShootingForce, ForceMode2D.Impulse);
+        bulletRigidbody.transform.position = _spaceship.transform.position;
+        bulletRigidbody.AddForce(_spaceship.transform.up * m_ShootingForce, ForceMode2D.Impulse);
         WarpManager.Instance.SubscribeTransform(bulletRigidbody.transform);
     }
 
@@ -62,9 +79,9 @@ public class PlayerController : Singleton<PlayerController>
     {
         if (Input.GetKey(KeyCode.UpArrow))
         {
-            var spaceShipTransform = m_SpaceshipRigidbody.transform;
+            var spaceShipTransform = _spaceship.transform;
             var forceVector = spaceShipTransform.up * (m_TrustForce * Time.deltaTime);
-            m_SpaceshipRigidbody.AddForce(forceVector, ForceMode2D.Force);
+            _spaceship.Rigidbody.AddForce(forceVector, ForceMode2D.Force);
         }
     }
     
@@ -72,17 +89,17 @@ public class PlayerController : Singleton<PlayerController>
     {
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            m_SpaceshipRigidbody.transform.Rotate(Vector3.forward, -1 * m_RotationDegrees * Time.deltaTime);
+            _spaceship.transform.Rotate(Vector3.forward, -1 * m_RotationDegrees * Time.deltaTime);
         }
         else if (Input.GetKey(KeyCode.LeftArrow))
         {
-            m_SpaceshipRigidbody.transform.Rotate(Vector3.forward, m_RotationDegrees * Time.deltaTime);
+            _spaceship.transform.Rotate(Vector3.forward, m_RotationDegrees * Time.deltaTime);
         }
     }
     
     protected override void OnDestroy()
     {
-        WarpManager.Instance.UnsubscribeTransform(m_SpaceshipRigidbody.transform);
+        WarpManager.Instance.UnsubscribeTransform(_spaceship.transform);
         base.OnDestroy();
     }
 }
