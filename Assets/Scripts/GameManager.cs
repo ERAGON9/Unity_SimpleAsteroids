@@ -1,17 +1,21 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameManager : Singleton<GameManager>
 {
+    private const string HighScoreKey = "HighScore";
+    
     [Header("GameLoop")]
     [SerializeField] private int _initialLives = 3;
     private int _currentLives;
     private int _currentScore;
+    private int _highScore;
 
     [Header("Asteroids")]
-    [SerializeField] private List<GameObject> _asteroidSpawnLocations;
     [SerializeField] private Asteroid _asteroidPrefab;
+    [SerializeField] private List<GameObject> _asteroidSpawnLocations;
     private List<Asteroid> _currentAsteroids = new();
 
     private void Start()
@@ -21,7 +25,7 @@ public class GameManager : Singleton<GameManager>
 
     private void StartGame()
     {
-        var hiScore = 0; // TODO??
+        _highScore = PlayerPrefs.GetInt(HighScoreKey, 0);
         _currentLives = _initialLives;
         _currentScore = 0;
         
@@ -29,7 +33,7 @@ public class GameManager : Singleton<GameManager>
         
         CanvasManager.Instance.UpdateLives(_currentLives);
         CanvasManager.Instance.UpdateCurrentScore(_currentScore);
-        CanvasManager.Instance.UpdateHiScore(hiScore);
+        CanvasManager.Instance.UpdateHiScore(_highScore);
 
         // TODO: pool asteroids?
         foreach (var currentAsteroid in _currentAsteroids)
@@ -61,13 +65,24 @@ public class GameManager : Singleton<GameManager>
 
         _currentScore += asteroid.Score;
         CanvasManager.Instance.UpdateCurrentScore(_currentScore);
+        if (_currentScore > _highScore)
+        {
+            _highScore = _currentScore;
+            CanvasManager.Instance.UpdateHiScore(_highScore);
+            PlayerPrefs.SetInt(HighScoreKey, _highScore);
+            PlayerPrefs.Save();
+        }
     }
 
-    private static void DestroyBullet(Bullet bullet)
+    public void DestroyBullet(Bullet bullet)
     {
         // TODO: pool bullets?
-        Destroy(bullet.gameObject);
-        WarpManager.Instance.UnsubscribeTransform(bullet.transform);
+        if (!bullet.AlreadyDestroyed)
+        {
+            bullet.AlreadyDestroyed = true;
+            PlayerController.Instance.ReturnBullet(bullet);
+            WarpManager.Instance.UnsubscribeTransform(bullet.transform);
+        }
     }
 
     private void DestroyAsteroid(Asteroid asteroid, bool removeFromList = true)

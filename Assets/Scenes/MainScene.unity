@@ -156,8 +156,10 @@ MonoBehaviour:
   _thrustForce: 300
   _rotationDegrees: 180
   _initialPosition: {x: 0, y: 0, z: 0}
-  _bulletPrefab: {fileID: 4678316897352260879, guid: 921ed4ce304df4c19bd27edea655be59, type: 3}
+  _fireCooldown: 0.2
+  _bulletPrefab: {fileID: 5898771267087963575, guid: 921ed4ce304df4c19bd27edea655be59, type: 3}
   _shootingForce: 30
+  _bulletTimeout: 0.35
   _audioSource: {fileID: 121801237}
   _lasterClip: {fileID: 8300000, guid: bad1e4a69139d4d51a91d7cc09f86d45, type: 3}
 --- !u!4 &121801236
