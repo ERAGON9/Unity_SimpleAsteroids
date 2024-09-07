@@ -1,22 +1,21 @@
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameManager : Singleton<GameManager>
 {
-    private const string HighScoreKey = "HighScore";
+    private const string HiScore = "HiScore";
     
     [Header("GameLoop")]
     [SerializeField] private int _initialLives = 3;
     private int _currentLives;
     private int _currentScore;
-    private int _highScore;
+    private int _hiScore;
 
     [Header("Asteroids")]
+    [SerializeField] private List<AsteroidSpawnLocation> _asteroidSpawnLocations;
     [SerializeField] private Asteroid _asteroidPrefab;
-    [SerializeField] private List<GameObject> _asteroidSpawnLocations;
-    private List<Asteroid> _currentAsteroids = new();
+    private readonly List<Asteroid> _currentAsteroids = new();
 
     private void Start()
     {
@@ -25,15 +24,15 @@ public class GameManager : Singleton<GameManager>
 
     private void StartGame()
     {
-        _highScore = PlayerPrefs.GetInt(HighScoreKey, 0);
+        _hiScore = PlayerPrefs.GetInt(HiScore, 0);
         _currentLives = _initialLives;
         _currentScore = 0;
         
-        PlayerController.Instance.InitializePlayer();
+        PlayerController.Instance.InitializePlayerLocation();
         
         CanvasManager.Instance.UpdateLives(_currentLives);
         CanvasManager.Instance.UpdateCurrentScore(_currentScore);
-        CanvasManager.Instance.UpdateHiScore(_highScore);
+        CanvasManager.Instance.UpdateHiScore(_hiScore);
 
         // TODO: pool asteroids?
         foreach (var currentAsteroid in _currentAsteroids)
@@ -48,7 +47,7 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
-    private void SpawnAsteroid(GameObject asteroidSpawnLocation)
+    private void SpawnAsteroid(AsteroidSpawnLocation asteroidSpawnLocation)
     {
         // TODO: pool asteroids?
         var newAsteroid = Instantiate(_asteroidPrefab);
@@ -64,25 +63,24 @@ public class GameManager : Singleton<GameManager>
         DestroyAsteroid(asteroid);
 
         _currentScore += asteroid.Score;
-        CanvasManager.Instance.UpdateCurrentScore(_currentScore);
-        if (_currentScore > _highScore)
+        
+        if (_currentScore > _hiScore)
         {
-            _highScore = _currentScore;
-            CanvasManager.Instance.UpdateHiScore(_highScore);
-            PlayerPrefs.SetInt(HighScoreKey, _highScore);
+            _hiScore = _currentScore;
+            PlayerPrefs.SetInt(HiScore, _hiScore);
             PlayerPrefs.Save();
+            
+            CanvasManager.Instance.UpdateHiScore(_hiScore);
         }
+        
+        CanvasManager.Instance.UpdateCurrentScore(_currentScore);
     }
 
-    public void DestroyBullet(Bullet bullet)
+    private void DestroyBullet(Bullet bullet)
     {
-        // TODO: pool bullets?
-        if (!bullet.AlreadyDestroyed)
-        {
-            bullet.AlreadyDestroyed = true;
-            PlayerController.Instance.ReturnBullet(bullet);
-            WarpManager.Instance.UnsubscribeTransform(bullet.transform);
-        }
+        bullet.StopTimeoutCoroutine();
+        PlayerController.Instance.ReturnBullet(bullet);
+        WarpManager.Instance.UnsubscribeTransform(bullet.transform);
     }
 
     private void DestroyAsteroid(Asteroid asteroid, bool removeFromList = true)
@@ -106,7 +104,6 @@ public class GameManager : Singleton<GameManager>
         }
         else
         {
-            //TODO: wait for like 5 seconds? 
             PlayerController.Instance.OnPlayerHit();
             CanvasManager.Instance.UpdateLives(_currentLives);
         }
@@ -114,7 +111,7 @@ public class GameManager : Singleton<GameManager>
 
     private void HandleGameOver()
     {
-        //TODO: wait for like 5 seconds? 
+        // TODO: start game over screen sequence, then call this:
         StartGame();
     }
 }

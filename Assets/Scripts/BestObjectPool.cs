@@ -1,25 +1,25 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Pool;
 
 public class BestObjectPool<T> where T : MonoBehaviour
 {
     private ObjectPool<T> _objectPool;
 
-    public BestObjectPool(T prefab, int capacity = 10, int maxcapacity = 500)
+    public BestObjectPool(T prefab, int capacity = 10, int maxCapacity = 500)
     {
         _objectPool = new ObjectPool<T>
         (
             createFunc: () =>
             {
-                var instance = Object.Instantiate(prefab);
-                instance.gameObject.SetActive(false);
-                return instance;
+                var newObject = Object.Instantiate(prefab);
+                newObject.gameObject.SetActive(false);
+                return newObject;
             },
             actionOnGet: obj => obj.gameObject.SetActive(true),
             actionOnRelease: obj => obj.gameObject.SetActive(false),
             actionOnDestroy: Object.Destroy,
             defaultCapacity: capacity,
-            maxSize: maxcapacity,
+            maxSize: maxCapacity,
             collectionCheck: false
         );
         
