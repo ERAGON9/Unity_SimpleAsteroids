@@ -5,35 +5,32 @@ using UnityEngine;
 
 public class WarpManager : Singleton<WarpManager>
 {
-    [SerializeField] private Camera m_Camera;
+    [SerializeField] private Camera _camera;
 
-    private List<Transform> m_Trasnforms = new();
-
-    public void SubscribeTransform(Transform i_AddedTransform)
+    private List<Transform> _trasnforms = new();
+    
+    public void SubscribeTransform(Transform addedTransform)
     {
-        m_Trasnforms.Add(i_AddedTransform);
+        _trasnforms.Add(addedTransform);
     }
     
-    public void UnsubscribeTransform(Transform i_RemovedTransform)
+    public void UnsubscribeTransform(Transform removedTransform)
     {
-        m_Trasnforms.Remove(i_RemovedTransform);
+        _trasnforms.Remove(removedTransform);
     }
-    
-    // Update is called once per frame
+
     private void Update()
     {
-        foreach (var keptTransform in m_Trasnforms)
+        foreach (var keptTransform in _trasnforms)
         {
             if (keptTransform != null)
-            {
                 KeepInBounds(keptTransform);
-            }
         }   
     }
-    
-    public void KeepInBounds(Transform i_keptTransform)
+
+    private void KeepInBounds(Transform keptTransform)
     {
-        var screenPoint = m_Camera.WorldToViewportPoint(i_keptTransform.position);
+        var screenPoint = _camera.WorldToViewportPoint(keptTransform.position);
         var outOfBounds = false;
 
         switch (screenPoint.x)
@@ -60,18 +57,9 @@ public class WarpManager : Singleton<WarpManager>
                 break;
         }
 
-        if (!outOfBounds)
-        {
-            return;
-        }
-
-        var updatedWordPosition = m_Camera.ViewportToWorldPoint(screenPoint);
-        i_keptTransform.position = updatedWordPosition;
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
+        if (!outOfBounds) return;
         
+        var updatedWorldPosition = _camera.ViewportToWorldPoint(screenPoint);
+        keptTransform.position = updatedWorldPosition;
     }
 }

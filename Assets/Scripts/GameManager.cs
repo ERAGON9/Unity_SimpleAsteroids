@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,9 +24,9 @@ public class GameManager : Singleton<GameManager>
         var hiScore = 0; // TODO??
         _currentLives = _initialLives;
         _currentScore = 0;
-
+        
         PlayerController.Instance.InitializePlayer();
-
+        
         CanvasManager.Instance.UpdateLives(_currentLives);
         CanvasManager.Instance.UpdateCurrentScore(_currentScore);
         CanvasManager.Instance.UpdateHiScore(hiScore);
@@ -37,7 +37,7 @@ public class GameManager : Singleton<GameManager>
             DestroyAsteroid(currentAsteroid, false);
         }
         _currentAsteroids.Clear();
-
+        
         foreach (var asteroidSpawnLocation in _asteroidSpawnLocations)
         {
             SpawnAsteroid(asteroidSpawnLocation);
@@ -66,19 +66,17 @@ public class GameManager : Singleton<GameManager>
     private static void DestroyBullet(Bullet bullet)
     {
         // TODO: pool bullets?
-        WarpManager.Instance.UnsubscribeTransform(bullet.transform);
         Destroy(bullet.gameObject);
+        WarpManager.Instance.UnsubscribeTransform(bullet.transform);
     }
 
     private void DestroyAsteroid(Asteroid asteroid, bool removeFromList = true)
     {
         // TODO: pool asteroids
+        Destroy(asteroid.gameObject);
         WarpManager.Instance.UnsubscribeTransform(asteroid.transform);
         if (removeFromList)
-        {
             _currentAsteroids.Remove(asteroid);
-        }
-        Destroy(asteroid.gameObject);
     }
 
     public void OnAsteroidSpaceshipCollision(Spaceship spaceship, Asteroid asteroid)
@@ -86,7 +84,7 @@ public class GameManager : Singleton<GameManager>
         CanvasManager.Instance.UpdateLives(_currentLives);
         spaceship.Rigidbody.HaltRigidbody();
         _currentLives--;
-
+        
         if (_currentLives <= 0)
         {
             HandleGameOver();

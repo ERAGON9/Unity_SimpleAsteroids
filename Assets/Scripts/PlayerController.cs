@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -9,18 +7,17 @@ public class PlayerController : Singleton<PlayerController>
 {
     [Header("Spaceship")]
     [SerializeField] private Spaceship _spaceshipPrefab;
-    [SerializeField] private float m_TrustForce;
-    [SerializeField] private float m_RotationDegrees = 10;
+    [SerializeField] private float _thrustForce;
+    [SerializeField] private float _rotationDegrees = 10;
     [SerializeField] private Vector3 _initialPosition;
-    
+
     [Header("Bullets")]
-    [SerializeField] private GameObject m_BulletPrefab;
-    [SerializeField] private float m_ShootingForce;
+    [SerializeField] private GameObject _bulletPrefab;
+    [SerializeField] private float _shootingForce;
     
     [Header("Audio")] 
-    [SerializeField] private AudioSource m_AudioSource;
-    [SerializeField] private AudioClip m_LaserClip;
-    
+    [SerializeField] private AudioSource _audioSource;
+    [SerializeField] private AudioClip _lasterClip;
     
     private Spaceship _spaceship;
 
@@ -34,72 +31,66 @@ public class PlayerController : Singleton<PlayerController>
     {
         _spaceship.transform.position = _initialPosition;
     }
-
+    
     public void OnPlayerHit()
     {
         // TODO: animate and limit invincibility and input
         InitializePlayer();
     }
-    
-    // Start is called before the first frame update
-    void Start()
+
+    private void Update()
     {
-        
+        HandleThrust();
+        HandleRotation();
+        HandleBullets();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        handleTrust();
-        handleRotation();
-        handleBullets();
-    }
-
-    private void handleBullets()
+    private void HandleBullets()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
             // TODO: Implement cooldown
             // TODO: Implement object pooling
             SpawnBullet();
-            m_AudioSource.PlayOneShot(m_LaserClip);
+
+            _audioSource.PlayOneShot(_lasterClip);
         }
     }
 
     private void SpawnBullet()
     {
-        var bullet = Instantiate(m_BulletPrefab);
+        var bullet = Instantiate(_bulletPrefab);
         var bulletRigidbody = bullet.GetComponent<Rigidbody2D>();
-        bulletRigidbody.transform.position = _spaceship.transform.position;
-        bulletRigidbody.AddForce(_spaceship.transform.up * m_ShootingForce, ForceMode2D.Impulse);
+        bulletRigidbody.transform.position = _spaceship.transform.position; 
+        bulletRigidbody.AddForce(_spaceship.transform.up * _shootingForce, ForceMode2D.Impulse);
         WarpManager.Instance.SubscribeTransform(bulletRigidbody.transform);
     }
 
-    private void handleTrust()
+    private void HandleThrust()
     {
         if (Input.GetKey(KeyCode.UpArrow))
         {
-            var spaceShipTransform = _spaceship.transform;
-            var forceVector = spaceShipTransform.up * (m_TrustForce * Time.deltaTime);
+            var spaceshipTransform = _spaceship.transform;
+            var forceVector = spaceshipTransform.up * (_thrustForce * Time.deltaTime);
             _spaceship.Rigidbody.AddForce(forceVector, ForceMode2D.Force);
         }
     }
-    
-    private void handleRotation()
+
+    private void HandleRotation()
     {
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            _spaceship.transform.Rotate(Vector3.forward, -1 * m_RotationDegrees * Time.deltaTime);
+            _spaceship.transform.Rotate(Vector3.forward, -1 * _rotationDegrees * Time.deltaTime);
         }
         else if (Input.GetKey(KeyCode.LeftArrow))
         {
-            _spaceship.transform.Rotate(Vector3.forward, m_RotationDegrees * Time.deltaTime);
+            _spaceship.transform.Rotate(Vector3.forward, _rotationDegrees * Time.deltaTime);
         }
     }
-    
+
     protected override void OnDestroy()
     {
-        WarpManager.Instance.UnsubscribeTransform(_spaceship.transform);
         base.OnDestroy();
+        WarpManager.Instance.UnsubscribeTransform(_spaceship.transform);
     }
 }
