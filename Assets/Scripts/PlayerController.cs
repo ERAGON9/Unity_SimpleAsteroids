@@ -20,6 +20,8 @@ public class PlayerController : Singleton<PlayerController>
     [SerializeField] private AudioClip _lasterClip;
     
     private Spaceship _spaceship;
+    private bool _isFlying;
+    public bool IsFlying => _isFlying;
 
     private void Awake()
     {
@@ -68,7 +70,8 @@ public class PlayerController : Singleton<PlayerController>
 
     private void HandleThrust()
     {
-        if (Input.GetKey(KeyCode.UpArrow))
+        _isFlying = Input.GetKey(KeyCode.UpArrow);
+        if (IsFlying)
         {
             var spaceshipTransform = _spaceship.transform;
             var forceVector = spaceshipTransform.up * (_thrustForce * Time.deltaTime);
