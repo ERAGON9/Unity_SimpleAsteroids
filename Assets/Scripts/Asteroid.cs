@@ -4,10 +4,14 @@ public class Asteroid : MonoBehaviour
 {
     [SerializeField] private Rigidbody2D _rigidbody;
     public Rigidbody2D Rigidbody => _rigidbody;
-
-    [SerializeField] private float _initialThrustForce;
-    [SerializeField] private int _score;
+    [SerializeField] private SpriteRenderer _spriteRenderer;
+    
+    private float _initialThrustForce;
+    private int _score;
+    private int _level;
+    
     public int Score => _score;
+    public int Level => _level;
     
     public void InvokeInitialForce()
     {
@@ -25,5 +29,13 @@ public class Asteroid : MonoBehaviour
         {
              GameManager.Instance.OnAsteroidSpaceshipCollision(other.GetComponent<Spaceship>(), this);
         }
+    }
+    
+    public void SetUp(AsteroidData asteroidData)
+    {
+        _initialThrustForce = asteroidData.InitialThrustForce;
+        _score = asteroidData.Score;
+        _level = asteroidData.Level;
+        _spriteRenderer.sprite = asteroidData.Sprites[Random.Range(0, asteroidData.Sprites.Count)];
     }
 }

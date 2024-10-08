@@ -783,6 +783,10 @@ MonoBehaviour:
   - {fileID: 276311559}
   - {fileID: 1363721173}
   _asteroidPrefab: {fileID: 7471317658494781046, guid: 7896313f2f1e74f94bb7d0b342b1ab09, type: 3}
+  _asteroidDataList:
+  - {fileID: 11400000, guid: 28f8db0e8ca1f494495857d59921b74d, type: 2}
+  - {fileID: 11400000, guid: da753a2f76bc23a4888acf760c34f3d4, type: 2}
+  - {fileID: 11400000, guid: 06f78dbda77575c4bbf670276b09e6ff, type: 2}
 --- !u!4 &725985257
 Transform:
   m_ObjectHideFlags: 0
