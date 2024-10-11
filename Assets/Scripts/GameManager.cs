@@ -13,6 +13,7 @@ public class GameManager : Singleton<GameManager>
     private int _currentLives;
     private int _currentScore;
     private int _hiScore;
+    private int _newAsteroidsOnDestroy = 2;
 
     [Header("Asteroids")]
     [SerializeField] private List<AsteroidSpawnLocation> _asteroidSpawnLocations;
@@ -52,18 +53,18 @@ public class GameManager : Singleton<GameManager>
         
         foreach (var asteroidSpawnLocation in _asteroidSpawnLocations)
         {
-            SpawnAsteroid(asteroidSpawnLocation, 1);
+            SpawnAsteroid(asteroidSpawnLocation.transform.position, 1);
         }
     }
 
-    private void SpawnAsteroid(AsteroidSpawnLocation asteroidSpawnLocation, int level)
+    private void SpawnAsteroid(Vector3 SpawnPosition, int level)
     {
         var newAsteroid = _asteroidPool.Get();
         
         var asteroidData = _asteroidDataList.FirstOrDefault(asteroidData => asteroidData.Level == level);
         
         newAsteroid.SetUp(asteroidData);
-        newAsteroid.transform.position = asteroidSpawnLocation.transform.position;
+        newAsteroid.transform.position = SpawnPosition;
         WarpManager.Instance.SubscribeTransform(newAsteroid.transform);
         _currentAsteroids.Add(newAsteroid);
         
@@ -73,7 +74,7 @@ public class GameManager : Singleton<GameManager>
     public void OnBulletAsteroidCollision(Bullet bullet, Asteroid asteroid)
     {
         DestroyBullet(bullet);
-        DestroyAsteroid(asteroid);
+
 
         _currentScore += asteroid.Score;
         
@@ -87,6 +88,15 @@ public class GameManager : Singleton<GameManager>
         }
         
         CanvasManager.Instance.UpdateCurrentScore(_currentScore);
+        if (asteroid.Level  < _asteroidDataList.Count)
+        {
+            for (int i = 0; i < _newAsteroidsOnDestroy; i++)
+            {
+                SpawnAsteroid(asteroid.transform.position, asteroid.Level + 1);
+            }
+        }
+        
+        DestroyAsteroid(asteroid);
     }
 
     private void DestroyBullet(Bullet bullet)
